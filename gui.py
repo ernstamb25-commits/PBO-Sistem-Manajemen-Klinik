@@ -279,6 +279,10 @@ class KlinikApp(tk.Tk):
             nama = v_nama.get().strip()
             tgl  = v_tgl.get().strip()
 
+            self.db.update_pasien(id_p, nama, tgl, v_jalan.get() or "-", v_kota.get() or "Yogyakarta", v_kpos.get() or "55000", v_telp.get() or "-")
+            messagebox.showinfo("Berhasil", f"Data pasien {nama} berhasil diperbarui!")
+            self.show_pasien() # Refresh halaman
+
         # === FUNGSI HAPUS DATA ===
         def do_hapus():
             id_p = v_id_edit.get()
@@ -295,11 +299,6 @@ class KlinikApp(tk.Tk):
                     self.show_pasien() # Refresh halaman dan bersihkan form
                 else:
                     messagebox.showerror("Error", "Gagal menghapus data. Pasien tidak ditemukan.")
-
-
-            self.db.update_pasien(id_p, nama, tgl, v_jalan.get() or "-", v_kota.get() or "Yogyakarta", v_kpos.get() or "55000", v_telp.get() or "-")
-            messagebox.showinfo("Berhasil", f"Data pasien {nama} berhasil diperbarui!")
-            self.show_pasien() # Refresh halaman
 
         tk.Frame(form_card, bg=self.WHITE, height=4).pack()
         
@@ -500,25 +499,15 @@ class KlinikApp(tk.Tk):
                     self.show_antrian()
                 else:
                     messagebox.showerror("Error", "Gagal menghapus antrian.")
-            
-            # Ambil 'nomor' antrian dari kolom pertama (index 0) pada baris yang dipilih
-            nomor_antrian = int(tv.item(sel[0], 'values')[0])
-            nama_pasien = tv.item(sel[0], 'values')[1]
-            
-            konfirmasi = messagebox.askyesno("Konfirmasi", f"Yakin ingin menghapus Antrian No. {nomor_antrian} atas nama {nama_pasien}?")
-            if konfirmasi:
-                if self.db.hapus_antrian(nomor_antrian):
-                    messagebox.showinfo("Berhasil", "Data antrian berhasil dihapus!")
-                    self.show_antrian() # Refresh tampilan tabel
-                else:
-                    messagebox.showerror("Error", "Gagal menghapus antrian.")
         
 
         # === TAMBAHKAN TOMBOL HAPUS (Warna Merah) DI SEBELAH TOMBOL UPDATE ===
-        self._btn(ctrl, "Update", ubah_status, color=self.SUCCESS).pack(side=tk.LEFT, padx=4)
-        self._btn(ctrl, "Hapus", do_hapus_antrian, color=self.DANGER).pack(side=tk.LEFT, padx=(10, 4))
-
-        self._btn(ctrl, "Update", ubah_status, color=self.SUCCESS).pack(side=tk.LEFT, padx=4)
+        # === BUNGKUS TOMBOL AGAR BISA ATAS-BAWAH ===
+        btn_frame = tk.Frame(ctrl, bg=self.WHITE)
+        btn_frame.pack(side=tk.LEFT, padx=10)
+        
+        self._btn(btn_frame, "Update", ubah_status, color=self.SUCCESS).pack(side=tk.TOP, fill=tk.X, pady=(0, 2))
+        self._btn(btn_frame, "Hapus", do_hapus_antrian, color=self.DANGER).pack(side=tk.TOP, fill=tk.X, pady=(2, 0))
 
     
     def show_resep(self):
