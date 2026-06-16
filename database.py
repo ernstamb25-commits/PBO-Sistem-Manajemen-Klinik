@@ -2,6 +2,8 @@ import uuid
 import pickle
 import os
 from models import Pasien, Dokter, Obat, Resep, Antrian
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+FILE_PATH = os.path.join(BASE_DIR, 'data_klinik.pkl')
 
 # =====================================================
 # SINGLETON: DatabaseKlinik
@@ -34,12 +36,12 @@ class DatabaseKlinik:
             'resep': self._resep,
             'nomor_antrian': self._nomor_antrian
         }
-        with open('data_klinik.pkl', 'wb') as f:
+        with open(FILE_PATH, 'wb') as f:
             pickle.dump(data, f)
 
     def load_data(self) -> bool:
-        if os.path.exists('data_klinik.pkl'):
-            with open('data_klinik.pkl', 'rb') as f:
+        if os.path.exists(FILE_PATH):
+            with open(FILE_PATH, 'rb') as f:
                 data = pickle.load(f)
                 self._pasien = data['pasien']
                 self._dokter = data['dokter']
