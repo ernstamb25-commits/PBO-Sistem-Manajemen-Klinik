@@ -288,7 +288,7 @@ class KlinikApp(tk.Tk):
                 messagebox.showwarning("Pilih Data", "Pilih pasien dari tabel terlebih dahulu!")
                 return
             nama = v_nama.get().strip()
-            tgl  = v_tgl.get().strip()
+            tgl  = ent_tgl.get_date().strftime('%Y-%m-%d')
 
             self.db.update_pasien(id_p, nama, tgl, v_jalan.get() or "-", v_kota.get() or "Yogyakarta", v_kpos.get() or "55000", v_telp.get() or "-")
             messagebox.showinfo("Berhasil", f"Data pasien {nama} berhasil diperbarui!")
