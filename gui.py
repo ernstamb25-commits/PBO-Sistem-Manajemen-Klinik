@@ -364,6 +364,7 @@ class KlinikApp(tk.Tk):
         v_hari  = tk.StringVar(value="Senin-Jumat")
         v_j1    = tk.StringVar(value="08:00")
         v_j2    = tk.StringVar(value="14:00")
+        v_id_edit = tk.StringVar()
 
         self._entry_row(form_card, "Nama dokter", v_nama)
         self._combo_row(form_card, "Tipe", v_tipe, ["umum", "spesialis"])
@@ -393,15 +394,63 @@ class KlinikApp(tk.Tk):
                                 f"Tarif: Rp {d.hitung_biaya():,}")
             self.show_dokter()
 
+        def do_update_dokter():
+            id_d = v_id_edit.get()
+            if not id_d:
+                messagebox.showwarning("Pilih Data", "Pilih dokter dari tabel terlebih dahulu!")
+                return
+            try: k = float(v_k.get())
+            except ValueError: k = 2.5
+            
+            if self.db.update_dokter(id_d, v_nama.get(), v_spes.get(), v_hari.get(), v_j1.get(), v_j2.get(), k):
+                messagebox.showinfo("Berhasil", "Data dokter diperbarui!")
+                self.show_dokter()
+
+        def do_hapus_dokter():
+            id_d = v_id_edit.get()
+            if not id_d:
+                messagebox.showwarning("Pilih Data", "Pilih dokter dari tabel terlebih dahulu!")
+                return
+            if messagebox.askyesno("Hapus", f"Yakin hapus dokter {v_nama.get()}?"):
+                self.db.hapus_dokter(id_d)
+                messagebox.showinfo("Berhasil", "Dokter dihapus!")
+                self.show_dokter()
+
         tk.Frame(form_card, bg=self.WHITE, height=4).pack()
-        self._btn(form_card, "  + Buat via Factory", do_tambah).pack(padx=12, pady=8, anchor="w")
+        
+        btn_frame = tk.Frame(form_card, bg=self.WHITE)
+        btn_frame.pack(padx=12, pady=8, anchor="w")
+        self._btn(btn_frame, "+ Buat via Factory", do_tambah).pack(side=tk.LEFT)
+        self._btn(btn_frame, "Update", do_update_dokter, color=self.WARNING).pack(side=tk.LEFT, padx=(5, 0))
+        self._btn(btn_frame, "Hapus", do_hapus_dokter, color=self.DANGER).pack(side=tk.LEFT, padx=(5, 0))
 
         # Tabel dokter
-        tbl_card = self._card(top, "Daftar Dokter — Polimorfisme hitung_biaya()")
+        tbl_card = self._card(top, "Daftar Dokter")
         tbl_card.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         cols = ("ID", "Nama", "Class", "Spesialisasi", "Jadwal", "Tarif Konsul")
         widths = (50, 170, 130, 100, 140, 110)
         tv = self._treeview(tbl_card, cols, widths)
+
+        def on_tabel_dokter_click(event):
+            selected = tv.selection()
+            if not selected: return
+            id_d = tv.item(selected[0], 'values')[0]
+            d = self.db.cari_dokter(id_d)
+            if d:
+                v_id_edit.set(d.id_pegawai)
+                v_nama.set(d.nama)
+                v_tipe.set("spesialis" if "Spesialis" in d.__class__.__name__ else "umum")
+                v_spes.set(d.spesialisasi)
+                v_hari.set(d.jadwal.hari)
+                v_j1.set(d.jadwal.jam_mulai)
+                v_j2.set(d.jadwal.jam_selesai)
+                if hasattr(d, 'kelipatan'):
+                    v_k.set(str(d.kelipatan))
+                else:
+                    v_k.set("2.5")
+
+        tv.bind('<ButtonRelease-1>', on_tabel_dokter_click)
+
         for i, d in enumerate(self.db.get_dokter()):
             tag = "odd" if i % 2 else "even"
             tv.insert("", "end",

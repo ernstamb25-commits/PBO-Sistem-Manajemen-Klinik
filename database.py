@@ -53,6 +53,25 @@ class DatabaseKlinik:
     def cari_dokter(self, id_d: str) -> Dokter:
         return next((d for d in self._dokter if d.id_pegawai == id_d), None)
 
+    def update_dokter(self, id_d: str, nama: str, spesialisasi: str, hari: str, j1: str, j2: str, kelipatan: float) -> bool:
+        d = self.cari_dokter(id_d)
+        if d:
+            from models import JadwalPraktek
+            d.nama = nama
+            d.spesialisasi = spesialisasi
+            d.jadwal = JadwalPraktek(hari, j1, j2)
+            if hasattr(d, 'kelipatan'):
+                d.kelipatan = kelipatan
+            return True
+        return False
+
+    def hapus_dokter(self, id_d: str) -> bool:
+        d = self.cari_dokter(id_d)
+        if d:
+            self._dokter.remove(d)
+            return True
+        return False
+
     # --- Obat ---
     def tambah_obat(self, o: Obat): self._obat.append(o)
     def get_obat(self) -> list: return self._obat
