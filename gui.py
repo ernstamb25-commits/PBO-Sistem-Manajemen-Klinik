@@ -465,7 +465,7 @@ class KlinikApp(tk.Tk):
         
         btn_frame = tk.Frame(form_card, bg=self.WHITE)
         btn_frame.pack(padx=12, pady=8, anchor="w")
-        self._btn(btn_frame, "+ Buat via Factory", do_tambah).pack(side=tk.LEFT)
+        self._btn(btn_frame, "+ Buat", do_tambah).pack(side=tk.LEFT)
         self._btn(btn_frame, "Update", do_update_dokter, color=self.WARNING).pack(side=tk.LEFT, padx=(5, 0))
         self._btn(btn_frame, "Hapus", do_hapus_dokter, color=self.DANGER).pack(side=tk.LEFT, padx=(5, 0))
         self._btn(btn_frame, "Hapus Semua", do_hapus_semua_dokter, color=self.DANGER).pack(side=tk.LEFT, padx=(5, 0))
