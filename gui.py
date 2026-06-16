@@ -583,14 +583,6 @@ class KlinikApp(tk.Tk):
                 messagebox.showinfo("Berhasil", "Semua antrian dihapus dan nomor antrian di-reset!")
                 self.show_antrian()
 
-        # === TAMBAHKAN TOMBOL HAPUS (Warna Merah) DI SEBELAH TOMBOL UPDATE ===
-        # === BUNGKUS TOMBOL AGAR BISA ATAS-BAWAH ===
-        btn_frame = tk.Frame(ctrl, bg=self.WHITE)
-        btn_frame.pack(side=tk.LEFT, padx=10)
-        
-        self._btn(btn_frame, "Update", ubah_status, color=self.SUCCESS).pack(side=tk.TOP, fill=tk.X, pady=(0, 2))
-        self._btn(btn_frame, "Hapus", do_hapus_antrian, color=self.DANGER).pack(side=tk.TOP, fill=tk.X, pady=(2, 2))
-        self._btn(btn_frame, "Hapus Semua", do_hapus_semua_antrian, color=self.DANGER).pack(side=tk.TOP, fill=tk.X, pady=(0, 0))
 
     def show_obat(self):
         self._clear(); self._set_title("Data Obat")
