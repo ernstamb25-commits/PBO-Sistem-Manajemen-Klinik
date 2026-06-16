@@ -723,8 +723,9 @@ class KlinikApp(tk.Tk):
             no_antrian = int(v_antrian.get().split(" ")[1])
             a = next((x for x in self.db.get_antrian() if x.nomor == no_antrian), None)
             if a:
-                v_p.set(f"{a.pasien.id_pasien}   {a.pasien.nama}")
-                v_d.set(f"{a.dokter.id_pegawai}   {a.dokter.nama}")
+                # Perhatikan bagian ini, pastikan copas simbol strip-nya (" — ") persis!
+                v_p.set(f"{a.pasien.id_pasien} — {a.pasien.nama}")
+                v_d.set(f"{a.dokter.id_pegawai} — {a.dokter.nama}")
 
         cb_antrian.bind("<<ComboboxSelected>>", on_antrian_selected)
         tk.Frame(form_card, bg="#E0E0E0", height=1).pack(fill=tk.X, pady=10)
