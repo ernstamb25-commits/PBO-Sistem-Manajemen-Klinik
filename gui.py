@@ -676,29 +676,59 @@ class KlinikApp(tk.Tk):
 
         self._combo_row(form_card, "Pasien", v_p, pasien_list, 26)
         self._combo_row(form_card, "Dokter", v_d, dokter_list, 26)
+        tk.Frame(form_card, bg="#E0E0E0", height=1).pack(fill=tk.X, pady=10)
+        tk.Label(form_card, text="Detail Obat", bg=self.WHITE, fg=self.TEXT_M, font=("Segoe UI", 9, "bold")).pack(anchor="w", padx=12)
+
         self._combo_row(form_card, "Obat", v_o, obat_list, 26)
         self._entry_row(form_card, "Jumlah", v_jm, 6)
         self._entry_row(form_card, "Aturan pakai", v_at, 22)
 
-        def do_resep():
-            if not v_p.get() or not v_d.get() or not v_o.get():
-                messagebox.showwarning("Input", "Lengkapi semua pilihan!"); return
+        keranjang = [] 
+        lbl_keranjang = tk.Label(form_card, text="Keranjang Kosong", bg=self.WHITE, fg=self.TEXT_M, justify="left")
+        lbl_keranjang.pack(padx=12, pady=5, anchor="w")
+
+        def update_ui_keranjang():
+            if not keranjang:
+                lbl_keranjang.config(text="Keranjang Kosong", fg=self.TEXT_M)
+            else:
+                teks = "Isi Keranjang:\n"
+                for i, item in enumerate(keranjang):
+                    teks += f"{i+1}. {item['obat'].nama} ({item['jumlah']}x) - {item['aturan']}\n"
+                lbl_keranjang.config(text=teks, fg=self.TEXT_D)
+
+        def do_tambah_keranjang():
+            if not v_o.get():
+                messagebox.showwarning("Input", "Pilih obat terlebih dahulu!"); return
+            
+            oid = v_o.get().split(" — ")[0]
+            o = self.db.cari_obat(oid)
+            try: jml = int(v_jm.get())
+            except ValueError: jml = 1
+                
+            keranjang.append({"obat": o, "jumlah": jml, "aturan": v_at.get()})
+            update_ui_keranjang()
+            messagebox.showinfo("Berhasil", f"{o.nama} dimasukkan ke keranjang!")
+
+        def do_simpan_resep():
+            if not v_p.get() or not v_d.get():
+                messagebox.showwarning("Input", "Pilih pasien dan dokter!"); return
+            if len(keranjang) == 0:
+                messagebox.showwarning("Input", "Keranjang obat masih kosong!"); return
+
             pid = v_p.get().split(" — ")[0]
             did = v_d.get().split(" — ")[0]
-            oid = v_o.get().split(" — ")[0]
             p = self.db.cari_pasien(pid)
             d = self.db.cari_dokter(did)
-            o = self.db.cari_obat(oid)
-            try:
-                jml = int(v_jm.get())
-            except ValueError:
-                jml = 1
+
             id_r = f"RX{len(self.db.get_resep())+1:03d}"
             r = Resep(id_r, p, d, str(date.today()))
-            r.tambah_obat(o, jml, v_at.get())
+
+            for item in keranjang:
+                r.tambah_obat(item["obat"], item["jumlah"], item["aturan"])
+
             self.db.tambah_resep(r)
             messagebox.showinfo("Berhasil",
-                                f"Resep {id_r} dibuat!\n"
+                                f"Resep {id_r} berhasil dibuat!\n"
                                 f"Tarif dokter : Rp {d.hitung_biaya():,}\n"
                                 f"Total obat   : Rp {r.total_obat:,}\n"
                                 f"Grand total  : Rp {r.total_biaya:,}")
@@ -726,9 +756,16 @@ class KlinikApp(tk.Tk):
                 self.show_resep()
 
         tk.Frame(form_card, bg=self.WHITE, height=4).pack()
+        
+        btn_keranjang = tk.Frame(form_card, bg=self.WHITE)
+        btn_keranjang.pack(padx=12, pady=4, anchor="w")
+        self._btn(btn_keranjang, "+ Tambah ke Keranjang", do_tambah_keranjang, color=self.ACCENT).pack(side=tk.LEFT)
+
+        tk.Frame(form_card, bg="#E0E0E0", height=1).pack(fill=tk.X, pady=8)
+
         btn_frame = tk.Frame(form_card, bg=self.WHITE)
         btn_frame.pack(padx=12, pady=8, anchor="w")
-        self._btn(btn_frame, "💊 Buat Resep", do_resep).pack(side=tk.LEFT)
+        self._btn(btn_frame, "Simpan Resep", do_simpan_resep, color=self.SUCCESS).pack(side=tk.LEFT)
         self._btn(btn_frame, "Update", do_update_resep, color=self.WARNING).pack(side=tk.LEFT, padx=(5, 0))
         self._btn(btn_frame, "Hapus", do_hapus_resep, color=self.DANGER).pack(side=tk.LEFT, padx=(5, 0))
 
