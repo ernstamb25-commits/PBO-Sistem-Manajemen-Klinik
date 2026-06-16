@@ -674,8 +674,27 @@ class KlinikApp(tk.Tk):
         v_at = tk.StringVar(value="3x1 sesudah makan")
         v_id_resep_edit = tk.StringVar()
 
-        self._combo_row(form_card, "Pasien", v_p, pasien_list, 26)
-        self._combo_row(form_card, "Dokter", v_d, dokter_list, 26)
+        # 1. Combobox khusus Antrian Aktif
+        antrian_aktif = [f"Antrian {a.nomor} - {a.pasien.nama}" for a in self.db.get_antrian() if a.status != "selesai"]
+        v_antrian = tk.StringVar()
+        cb_antrian = self._combo_row(form_card, "Pilih Antrian", v_antrian, antrian_aktif, 26)
+
+        # 2. Tangkap object combobox Pasien & Dokter lalu matikan (disabled)
+        cb_pasien = self._combo_row(form_card, "Pasien", v_p, pasien_list, 26)
+        cb_dokter = self._combo_row(form_card, "Dokter", v_d, dokter_list, 26)
+        cb_pasien.config(state="disabled")
+        cb_dokter.config(state="disabled")
+
+        # 3. Fungsi Auto-fill
+        def on_antrian_selected(event):
+            if not v_antrian.get(): return
+            no_antrian = int(v_antrian.get().split(" ")[1])
+            a = next((x for x in self.db.get_antrian() if x.nomor == no_antrian), None)
+            if a:
+                v_p.set(f"{a.pasien.id_pasien}   {a.pasien.nama}")
+                v_d.set(f"{a.dokter.id_pegawai}   {a.dokter.nama}")
+
+        cb_antrian.bind("<<ComboboxSelected>>", on_antrian_selected)
         tk.Frame(form_card, bg="#E0E0E0", height=1).pack(fill=tk.X, pady=10)
         tk.Label(form_card, text="Detail Obat", bg=self.WHITE, fg=self.TEXT_M, font=("Segoe UI", 9, "bold")).pack(anchor="w", padx=12)
 

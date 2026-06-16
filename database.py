@@ -147,6 +147,10 @@ class DatabaseKlinik:
     def get_antrian(self) -> list: return self._antrian
     
     def next_nomor(self) -> int:
+        # Cek jika daftar antrian kosong, reset counter kembali ke 1
+        if len(self._antrian) == 0:
+            self._nomor_antrian = 1
+            
         n = self._nomor_antrian
         self._nomor_antrian += 1
         self.save_data()
