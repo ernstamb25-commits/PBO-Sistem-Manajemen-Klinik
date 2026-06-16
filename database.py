@@ -190,3 +190,29 @@ class DatabaseKlinik:
             self.save_data()
             return True
         return False
+    
+    def hapus_semua_pasien(self) -> bool:
+        self._pasien.clear()
+        self.save_data()
+        return True
+
+    def hapus_semua_dokter(self) -> bool:
+        self._dokter.clear()
+        self.save_data()
+        return True
+
+    def hapus_semua_obat(self) -> bool:
+        self._obat.clear()
+        self.save_data()
+        return True
+
+    def hapus_semua_antrian(self) -> bool:
+        self._antrian.clear()
+        self._nomor_antrian = 1
+        self.save_data()
+        return True
+
+    def hapus_semua_resep(self) -> bool:
+        self._resep.clear()
+        self.save_data()
+        return True

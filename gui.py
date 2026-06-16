@@ -300,6 +300,12 @@ class KlinikApp(tk.Tk):
                 else:
                     messagebox.showerror("Error", "Gagal menghapus data. Pasien tidak ditemukan.")
 
+        def do_hapus_semua():
+            if messagebox.askyesno("Hapus Semua", "Yakin hapus SEMUA data pasien?\nTindakan ini tidak bisa dibatalkan!"):
+                self.db.hapus_semua_pasien()
+                messagebox.showinfo("Berhasil", "Semua data pasien berhasil dihapus!")
+                self.show_pasien()
+
         tk.Frame(form_card, bg=self.WHITE, height=4).pack()
         
         #SUSUNAN TOMBOL
@@ -309,6 +315,7 @@ class KlinikApp(tk.Tk):
         self._btn(btn_frame, "  + Daftarkan", do_tambah).pack(side=tk.LEFT)
         self._btn(btn_frame, "Simpan Edit", do_update, color=self.WARNING).pack(side=tk.LEFT, padx=(5, 0))
         self._btn(btn_frame, "Hapus", do_hapus, color=self.DANGER).pack(side=tk.LEFT, padx=(5, 0))
+        self._btn(btn_frame, "Hapus Semua", do_hapus_semua, color=self.DANGER).pack(side=tk.LEFT, padx=(5, 0))
 
         # Tabel pasien
         tbl_card = self._card(top, "Daftar Pasien")
@@ -416,6 +423,12 @@ class KlinikApp(tk.Tk):
                 messagebox.showinfo("Berhasil", "Dokter dihapus!")
                 self.show_dokter()
 
+        def do_hapus_semua_dokter():
+            if messagebox.askyesno("Hapus Semua", "Yakin hapus SEMUA data dokter?"):
+                self.db.hapus_semua_dokter()
+                messagebox.showinfo("Berhasil", "Semua data dokter dihapus!")
+                self.show_dokter()
+
         tk.Frame(form_card, bg=self.WHITE, height=4).pack()
         
         btn_frame = tk.Frame(form_card, bg=self.WHITE)
@@ -423,6 +436,7 @@ class KlinikApp(tk.Tk):
         self._btn(btn_frame, "+ Buat via Factory", do_tambah).pack(side=tk.LEFT)
         self._btn(btn_frame, "Update", do_update_dokter, color=self.WARNING).pack(side=tk.LEFT, padx=(5, 0))
         self._btn(btn_frame, "Hapus", do_hapus_dokter, color=self.DANGER).pack(side=tk.LEFT, padx=(5, 0))
+        self._btn(btn_frame, "Hapus Semua", do_hapus_semua_dokter, color=self.DANGER).pack(side=tk.LEFT, padx=(5, 0))
 
         # Tabel dokter
         tbl_card = self._card(top, "Daftar Dokter")
@@ -478,10 +492,12 @@ class KlinikApp(tk.Tk):
         v_pasien = tk.StringVar()
         v_dokter = tk.StringVar()
         v_waktu  = tk.StringVar(value="09:00")
+        v_st     = tk.StringVar(value="menunggu") # Tambahan input status
 
         self._combo_row(form_card, "Pasien", v_pasien, pasien_list, width=26)
         self._combo_row(form_card, "Dokter", v_dokter, dokter_list, width=26)
         self._entry_row(form_card, "Waktu (HH:MM)", v_waktu, width=8)
+        self._combo_row(form_card, "Status", v_st, ["menunggu", "dalam perawatan", "selesai"], width=16)
 
         def do_tambah():
             if not v_pasien.get() or not v_dokter.get():
@@ -498,7 +514,18 @@ class KlinikApp(tk.Tk):
             self.show_antrian()
 
         tk.Frame(form_card, bg=self.WHITE, height=4).pack()
-        self._btn(form_card, "  + Tambah Antrian", do_tambah).pack(padx=12, pady=8, anchor="w")
+        
+        # Baris pertama untuk tombol Tambah
+        btn_frame1 = tk.Frame(form_card, bg=self.WHITE)
+        btn_frame1.pack(padx=12, pady=(8, 4), anchor="w")
+        self._btn(btn_frame1, "+ Tambah", do_tambah, color=self.ACCENT).pack(side=tk.LEFT)
+
+        # Baris kedua untuk tombol Update & Hapus
+        btn_frame2 = tk.Frame(form_card, bg=self.WHITE)
+        btn_frame2.pack(padx=12, pady=(0, 8), anchor="w")
+        self._btn(btn_frame2, "Update", lambda: ubah_status(), color=self.WARNING).pack(side=tk.LEFT)
+        self._btn(btn_frame2, "Hapus", lambda: do_hapus_antrian(), color=self.DANGER).pack(side=tk.LEFT, padx=(5, 0))
+        self._btn(btn_frame2, "Hapus Semua", lambda: do_hapus_semua_antrian(), color=self.DANGER).pack(side=tk.LEFT, padx=(5, 0))
 
         # Tabel antrian
         tbl_card = self._card(top, "Antrian Hari Ini")
@@ -514,14 +541,13 @@ class KlinikApp(tk.Tk):
             tv.insert("", "end", iid=str(i),
                       values=(a.nomor, a.pasien.nama, a.dokter.nama, a.waktu, a.status))
 
-        # Update status
-        ctrl = tk.Frame(tbl_card, bg=self.WHITE)
-        ctrl.pack(fill=tk.X, pady=6, padx=6)
-        tk.Label(ctrl, text="Ubah status antrian terpilih:", bg=self.WHITE,
-                 font=("Segoe UI", 9), fg=self.TEXT_M).pack(side=tk.LEFT, padx=6)
-        v_st = tk.StringVar(value="menunggu")
-        ttk.Combobox(ctrl, textvariable=v_st, values=status_opts,
-                     width=16, state="readonly").pack(side=tk.LEFT, padx=4)
+        # Event listener agar saat klik tabel, statusnya langsung mengisi combobox form otomatis
+        def on_tabel_click(event):
+            sel = tv.selection()
+            if not sel: return
+            v_st.set(tv.item(sel[0], 'values')[4])
+
+        tv.bind('<ButtonRelease-1>', on_tabel_click)
 
         def ubah_status():
             sel = tv.selection()
@@ -551,13 +577,20 @@ class KlinikApp(tk.Tk):
                     messagebox.showerror("Error", "Gagal menghapus antrian.")
         
 
+        def do_hapus_semua_antrian():
+            if messagebox.askyesno("Hapus Semua", "Yakin hapus SEMUA antrian hari ini?"):
+                self.db.hapus_semua_antrian()
+                messagebox.showinfo("Berhasil", "Semua antrian dihapus dan nomor antrian di-reset!")
+                self.show_antrian()
+
         # === TAMBAHKAN TOMBOL HAPUS (Warna Merah) DI SEBELAH TOMBOL UPDATE ===
         # === BUNGKUS TOMBOL AGAR BISA ATAS-BAWAH ===
         btn_frame = tk.Frame(ctrl, bg=self.WHITE)
         btn_frame.pack(side=tk.LEFT, padx=10)
         
         self._btn(btn_frame, "Update", ubah_status, color=self.SUCCESS).pack(side=tk.TOP, fill=tk.X, pady=(0, 2))
-        self._btn(btn_frame, "Hapus", do_hapus_antrian, color=self.DANGER).pack(side=tk.TOP, fill=tk.X, pady=(2, 0))
+        self._btn(btn_frame, "Hapus", do_hapus_antrian, color=self.DANGER).pack(side=tk.TOP, fill=tk.X, pady=(2, 2))
+        self._btn(btn_frame, "Hapus Semua", do_hapus_semua_antrian, color=self.DANGER).pack(side=tk.TOP, fill=tk.X, pady=(0, 0))
 
     def show_obat(self):
         self._clear(); self._set_title("Data Obat")
@@ -620,6 +653,12 @@ class KlinikApp(tk.Tk):
                 messagebox.showinfo("Berhasil", "Obat dihapus!")
                 self.show_obat()
 
+        def do_hapus_semua_obat():
+            if messagebox.askyesno("Hapus Semua", "Yakin hapus SEMUA data obat?"):
+                self.db.hapus_semua_obat()
+                messagebox.showinfo("Berhasil", "Semua data obat dihapus!")
+                self.show_obat()
+
         tk.Frame(form_card, bg=self.WHITE, height=4).pack()
         btn_frame = tk.Frame(form_card, bg=self.WHITE)
         btn_frame.pack(padx=12, pady=8, anchor="w")
@@ -627,6 +666,7 @@ class KlinikApp(tk.Tk):
         self._btn(btn_frame, "  + Tambah", do_tambah).pack(side=tk.LEFT)
         self._btn(btn_frame, "Update", do_update, color=self.WARNING).pack(side=tk.LEFT, padx=(5, 0))
         self._btn(btn_frame, "Hapus", do_hapus, color=self.DANGER).pack(side=tk.LEFT, padx=(5, 0))
+        self._btn(btn_frame, "Hapus Semua", do_hapus_semua_obat, color=self.DANGER).pack(side=tk.LEFT, padx=(5, 0))
 
         tbl_card = self._card(top, "Daftar Obat")
         tbl_card.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
@@ -780,6 +820,12 @@ class KlinikApp(tk.Tk):
         btn_keranjang.pack(padx=12, pady=4, anchor="w")
         self._btn(btn_keranjang, "+ Tambah ke Keranjang", do_tambah_keranjang, color=self.ACCENT).pack(side=tk.LEFT)
 
+        def do_hapus_semua_resep():
+            if messagebox.askyesno("Hapus Semua", "Yakin hapus SEMUA riwayat resep?"):
+                self.db.hapus_semua_resep()
+                messagebox.showinfo("Berhasil", "Semua riwayat resep dihapus!")
+                self.show_resep()
+
         tk.Frame(form_card, bg="#E0E0E0", height=1).pack(fill=tk.X, pady=8)
 
         btn_frame = tk.Frame(form_card, bg=self.WHITE)
@@ -787,6 +833,7 @@ class KlinikApp(tk.Tk):
         self._btn(btn_frame, "Simpan Resep", do_simpan_resep, color=self.SUCCESS).pack(side=tk.LEFT)
         self._btn(btn_frame, "Update", do_update_resep, color=self.WARNING).pack(side=tk.LEFT, padx=(5, 0))
         self._btn(btn_frame, "Hapus", do_hapus_resep, color=self.DANGER).pack(side=tk.LEFT, padx=(5, 0))
+        self._btn(btn_frame, "Hapus Semua", do_hapus_semua_resep, color=self.DANGER).pack(side=tk.LEFT, padx=(5, 0))
 
         # Tabel resep
         tbl_card = self._card(top, "Riwayat Resep")
