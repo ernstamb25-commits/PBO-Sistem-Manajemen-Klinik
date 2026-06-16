@@ -1,6 +1,8 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 from datetime import date
+import datetime
+from tkcalendar import DateEntry
 from models import Pasien, Antrian, Resep, Alamat, JadwalPraktek, DokterFactory
 from database import DatabaseKlinik
 
@@ -242,7 +244,6 @@ class KlinikApp(tk.Tk):
         tk.Frame(form_card, bg=self.WHITE, height=6).pack()
 
         v_nama  = tk.StringVar()
-        v_tgl   = tk.StringVar(value="2000-01-01")
         v_telp  = tk.StringVar()
         v_jalan = tk.StringVar()
         v_kota  = tk.StringVar(value="Yogyakarta")
@@ -250,7 +251,17 @@ class KlinikApp(tk.Tk):
         v_id_edit = tk.StringVar()
 
         self._entry_row(form_card, "Nama lengkap", v_nama)
-        self._entry_row(form_card, "Tanggal lahir", v_tgl)
+        
+        # --- GUI Kalender Picker ---
+        row_tgl = tk.Frame(form_card, bg=self.WHITE)
+        row_tgl.pack(fill=tk.X, padx=12, pady=3)
+        tk.Label(row_tgl, text="Tanggal lahir", bg=self.WHITE, fg=self.TEXT_D,
+                 font=("Segoe UI", 10), width=16, anchor="w").pack(side=tk.LEFT)
+        ent_tgl = DateEntry(row_tgl, width=19, background=self.SIDEBAR, 
+                            foreground=self.WHITE, borderwidth=2, date_pattern='yyyy-mm-dd')
+        ent_tgl.pack(side=tk.LEFT, ipady=3)
+        # ---------------------------
+
         self._entry_row(form_card, "No. Telepon", v_telp)
         self._entry_row(form_card, "Jalan", v_jalan)
         self._entry_row(form_card, "Kota", v_kota)
@@ -258,7 +269,7 @@ class KlinikApp(tk.Tk):
 
         def do_tambah():
             nama = v_nama.get().strip()
-            tgl  = v_tgl.get().strip()
+            tgl  = ent_tgl.get_date().strftime('%Y-%m-%d')
             if not nama or not tgl:
                 messagebox.showwarning("Input", "Nama dan tanggal lahir wajib diisi!")
                 return
@@ -337,7 +348,11 @@ class KlinikApp(tk.Tk):
                 # Masukkan data ke kotak input (Entry)
                 v_id_edit.set(p.id_pasien)
                 v_nama.set(p.nama)
-                v_tgl.set(p.tgl_lahir)
+                try:
+                    tgl_obj = datetime.datetime.strptime(p.tgl_lahir, '%Y-%m-%d').date()
+                    ent_tgl.set_date(tgl_obj) # Set tanggal kalender otomatis
+                except:
+                    pass
                 v_telp.set(p.no_telp)
                 v_jalan.set(p.alamat.jalan)
                 v_kota.set(p.alamat.kota)
@@ -369,24 +384,44 @@ class KlinikApp(tk.Tk):
         v_spes  = tk.StringVar(value="Umum")
         v_k     = tk.StringVar(value="2.5")
         v_hari  = tk.StringVar(value="Senin-Jumat")
-        v_j1    = tk.StringVar(value="08:00")
-        v_j2    = tk.StringVar(value="14:00")
         v_id_edit = tk.StringVar()
+        
+        # Variabel Jam & Menit terpisah (Dropdown)
+        v_jam_mulai   = tk.StringVar(value="08")
+        v_menit_mulai = tk.StringVar(value="00")
+        v_jam_selesai   = tk.StringVar(value="14")
+        v_menit_selesai = tk.StringVar(value="00")
 
         self._entry_row(form_card, "Nama dokter", v_nama)
         self._combo_row(form_card, "Tipe", v_tipe, ["umum", "spesialis"])
         self._entry_row(form_card, "Spesialisasi", v_spes)
         self._entry_row(form_card, "Kelipatan tarif", v_k, width=8)
         self._entry_row(form_card, "Hari praktek", v_hari)
-        self._entry_row(form_card, "Jam mulai", v_j1, width=8)
-        self._entry_row(form_card, "Jam selesai", v_j2, width=8)
+        
+        # --- GUI Dropdown Jam Mulai ---
+        row_j1 = tk.Frame(form_card, bg=self.WHITE)
+        row_j1.pack(fill=tk.X, padx=12, pady=3)
+        tk.Label(row_j1, text="Jam mulai", bg=self.WHITE, fg=self.TEXT_D, font=("Segoe UI", 10), width=16, anchor="w").pack(side=tk.LEFT)
+        ttk.Combobox(row_j1, textvariable=v_jam_mulai, values=[f"{i:02d}" for i in range(24)], width=5, state="readonly").pack(side=tk.LEFT)
+        tk.Label(row_j1, text=" : ", bg=self.WHITE).pack(side=tk.LEFT)
+        ttk.Combobox(row_j1, textvariable=v_menit_mulai, values=[f"{i:02d}" for i in range(0, 60, 5)], width=5, state="readonly").pack(side=tk.LEFT)
+        
+        # --- GUI Dropdown Jam Selesai ---
+        row_j2 = tk.Frame(form_card, bg=self.WHITE)
+        row_j2.pack(fill=tk.X, padx=12, pady=3)
+        tk.Label(row_j2, text="Jam selesai", bg=self.WHITE, fg=self.TEXT_D, font=("Segoe UI", 10), width=16, anchor="w").pack(side=tk.LEFT)
+        ttk.Combobox(row_j2, textvariable=v_jam_selesai, values=[f"{i:02d}" for i in range(24)], width=5, state="readonly").pack(side=tk.LEFT)
+        tk.Label(row_j2, text=" : ", bg=self.WHITE).pack(side=tk.LEFT)
+        ttk.Combobox(row_j2, textvariable=v_menit_selesai, values=[f"{i:02d}" for i in range(0, 60, 5)], width=5, state="readonly").pack(side=tk.LEFT)
 
         def do_tambah():
             nama = v_nama.get().strip()
             if not nama:
                 messagebox.showwarning("Input", "Nama dokter wajib diisi!"); return
             id_d = f"D{len(self.db.get_dokter())+1:03d}"
-            jadwal = JadwalPraktek(v_hari.get(), v_j1.get(), v_j2.get())
+            j1_gabung = f"{v_jam_mulai.get()}:{v_menit_mulai.get()}"
+            j2_gabung = f"{v_jam_selesai.get()}:{v_menit_selesai.get()}"
+            jadwal = JadwalPraktek(v_hari.get(), j1_gabung, j2_gabung)
             alamat = Alamat("Jl. Klinik", "Yogyakarta", "55000")
             try:
                 k = float(v_k.get())
@@ -409,7 +444,9 @@ class KlinikApp(tk.Tk):
             try: k = float(v_k.get())
             except ValueError: k = 2.5
             
-            if self.db.update_dokter(id_d, v_nama.get(), v_spes.get(), v_hari.get(), v_j1.get(), v_j2.get(), k):
+            j1_gabung = f"{v_jam_mulai.get()}:{v_menit_mulai.get()}"
+            j2_gabung = f"{v_jam_selesai.get()}:{v_menit_selesai.get()}"
+            if self.db.update_dokter(id_d, v_nama.get(), v_spes.get(), v_hari.get(), j1_gabung, j2_gabung, k):
                 messagebox.showinfo("Berhasil", "Data dokter diperbarui!")
                 self.show_dokter()
 
@@ -456,12 +493,20 @@ class KlinikApp(tk.Tk):
                 v_tipe.set("spesialis" if "Spesialis" in d.__class__.__name__ else "umum")
                 v_spes.set(d.spesialisasi)
                 v_hari.set(d.jadwal.hari)
-                v_j1.set(d.jadwal.jam_mulai)
-                v_j2.set(d.jadwal.jam_selesai)
-                if hasattr(d, 'kelipatan'):
-                    v_k.set(str(d.kelipatan))
-                else:
-                    v_k.set("2.5")
+            
+            # Memecah string "HH:MM" ke Dropdown masing-masing
+            jm_parts = d.jadwal.jam_mulai.split(":")
+            if len(jm_parts) == 2:
+                v_jam_mulai.set(jm_parts[0]); v_menit_mulai.set(jm_parts[1])
+            
+            js_parts = d.jadwal.jam_selesai.split(":")
+            if len(js_parts) == 2:
+                v_jam_selesai.set(js_parts[0]); v_menit_selesai.set(js_parts[1])
+                
+            if hasattr(d, 'kelipatan'):
+                v_k.set(str(d.kelipatan))
+            else:
+                v_k.set("2.5")
 
         tv.bind('<ButtonRelease-1>', on_tabel_dokter_click)
 
@@ -491,12 +536,23 @@ class KlinikApp(tk.Tk):
 
         v_pasien = tk.StringVar()
         v_dokter = tk.StringVar()
-        v_waktu  = tk.StringVar(value="09:00")
-        v_st     = tk.StringVar(value="menunggu") # Tambahan input status
+        v_st     = tk.StringVar(value="menunggu")
+        
+        # Variabel GUI Waktu Antrian
+        v_jam_antrian   = tk.StringVar(value="09")
+        v_menit_antrian = tk.StringVar(value="00")# Tambahan input status
 
         self._combo_row(form_card, "Pasien", v_pasien, pasien_list, width=26)
         self._combo_row(form_card, "Dokter", v_dokter, dokter_list, width=26)
-        self._entry_row(form_card, "Waktu (HH:MM)", v_waktu, width=8)
+        
+        # --- GUI Dropdown Waktu Antrian ---
+        row_wa = tk.Frame(form_card, bg=self.WHITE)
+        row_wa.pack(fill=tk.X, padx=12, pady=3)
+        tk.Label(row_wa, text="Waktu Antrian", bg=self.WHITE, fg=self.TEXT_D, font=("Segoe UI", 10), width=16, anchor="w").pack(side=tk.LEFT)
+        ttk.Combobox(row_wa, textvariable=v_jam_antrian, values=[f"{i:02d}" for i in range(24)], width=5, state="readonly").pack(side=tk.LEFT)
+        tk.Label(row_wa, text=" : ", bg=self.WHITE).pack(side=tk.LEFT)
+        ttk.Combobox(row_wa, textvariable=v_menit_antrian, values=[f"{i:02d}" for i in range(0, 60, 5)], width=5, state="readonly").pack(side=tk.LEFT)
+        
         self._combo_row(form_card, "Status", v_st, ["menunggu", "dalam perawatan", "selesai"], width=16)
 
         def do_tambah():
@@ -508,7 +564,8 @@ class KlinikApp(tk.Tk):
             d = self.db.cari_dokter(did)
             if not p or not d:
                 messagebox.showerror("Error", "Pasien atau dokter tidak ditemukan!"); return
-            a = Antrian(self.db.next_nomor(), p, d, v_waktu.get())
+            waktu_gabung = f"{v_jam_antrian.get()}:{v_menit_antrian.get()}"
+            a = Antrian(self.db.next_nomor(), p, d, waktu_gabung)
             self.db.tambah_antrian(a)
             messagebox.showinfo("Berhasil", f"Antrian no.{a.nomor} ditambahkan!")
             self.show_antrian()
@@ -546,6 +603,13 @@ class KlinikApp(tk.Tk):
             sel = tv.selection()
             if not sel: return
             v_st.set(tv.item(sel[0], 'values')[4])
+            
+            # Set jam otomatis saat baris diklik
+            waktu_val = tv.item(sel[0], 'values')[3] # Kolom waktu
+            w_parts = waktu_val.split(":")
+            if len(w_parts) == 2:
+                v_jam_antrian.set(w_parts[0])
+                v_menit_antrian.set(w_parts[1])
 
         tv.bind('<ButtonRelease-1>', on_tabel_click)
 
