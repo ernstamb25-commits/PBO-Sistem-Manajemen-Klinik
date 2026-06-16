@@ -73,7 +73,8 @@ class KlinikApp(tk.Tk):
             ("👥  Pasien",      self.show_pasien),
             ("🩺  Dokter",      self.show_dokter),
             ("📋  Antrian",     self.show_antrian),
-            ("💊  Resep & Obat",self.show_resep),
+            ("💊  Obat",        self.show_obat),
+            ("🧾  Resep",       self.show_resep),
         ]
         self._nav_btns = []
         for label, cmd in nav_items:
@@ -558,16 +559,107 @@ class KlinikApp(tk.Tk):
         self._btn(btn_frame, "Update", ubah_status, color=self.SUCCESS).pack(side=tk.TOP, fill=tk.X, pady=(0, 2))
         self._btn(btn_frame, "Hapus", do_hapus_antrian, color=self.DANGER).pack(side=tk.TOP, fill=tk.X, pady=(2, 0))
 
-    
+    def show_obat(self):
+        self._clear(); self._set_title("Data Obat")
+        c = self.content
+
+        top = tk.Frame(c, bg=self.BG)
+        top.pack(fill=tk.BOTH, expand=True)
+
+        form_card = self._card(top, "Kelola Data Obat — class Obat")
+        form_card.pack(side=tk.LEFT, fill=tk.Y, padx=(0,8))
+        tk.Frame(form_card, bg=self.WHITE, height=6).pack()
+
+        v_nama   = tk.StringVar()
+        v_satuan = tk.StringVar(value="Strip")
+        v_harga  = tk.StringVar()
+        v_stok   = tk.StringVar()
+        v_id_edit = tk.StringVar()
+
+        self._entry_row(form_card, "Nama Obat", v_nama)
+        self._combo_row(form_card, "Satuan", v_satuan, ["Strip", "Botol", "Tablet", "Kapsul", "Ampul"])
+        self._entry_row(form_card, "Harga (Rp)", v_harga)
+        self._entry_row(form_card, "Stok", v_stok)
+
+        def do_tambah():
+            nama = v_nama.get().strip()
+            if not nama:
+                messagebox.showwarning("Input", "Nama obat wajib diisi!")
+                return
+            try:
+                harga, stok = int(v_harga.get()), int(v_stok.get())
+            except ValueError:
+                messagebox.showwarning("Input", "Harga dan Stok harus angka!")
+                return
+            id_o = f"OB{len(self.db.get_obat())+1:03d}"
+            from models import Obat
+            o = Obat(id_o, nama, v_satuan.get(), harga, stok)
+            self.db.tambah_obat(o)
+            messagebox.showinfo("Berhasil", f"Obat {nama} ditambahkan!")
+            self.show_obat()
+
+        def do_update():
+            id_o = v_id_edit.get()
+            if not id_o:
+                messagebox.showwarning("Pilih Data", "Pilih obat di tabel!")
+                return
+            try:
+                harga, stok = int(v_harga.get()), int(v_stok.get())
+            except ValueError:
+                messagebox.showwarning("Input", "Harga dan Stok harus angka!")
+                return
+            if self.db.update_obat(id_o, v_nama.get(), v_satuan.get(), harga, stok):
+                messagebox.showinfo("Berhasil", "Data diperbarui!")
+                self.show_obat()
+
+        def do_hapus():
+            id_o = v_id_edit.get()
+            if not id_o: return
+            if messagebox.askyesno("Hapus", f"Yakin hapus {v_nama.get()}?"):
+                self.db.hapus_obat(id_o)
+                messagebox.showinfo("Berhasil", "Obat dihapus!")
+                self.show_obat()
+
+        tk.Frame(form_card, bg=self.WHITE, height=4).pack()
+        btn_frame = tk.Frame(form_card, bg=self.WHITE)
+        btn_frame.pack(padx=12, pady=8, anchor="w")
+        
+        self._btn(btn_frame, "  + Tambah", do_tambah).pack(side=tk.LEFT)
+        self._btn(btn_frame, "Update", do_update, color=self.WARNING).pack(side=tk.LEFT, padx=(5, 0))
+        self._btn(btn_frame, "Hapus", do_hapus, color=self.DANGER).pack(side=tk.LEFT, padx=(5, 0))
+
+        tbl_card = self._card(top, "Daftar Obat")
+        tbl_card.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        cols = ("ID Obat", "Nama", "Satuan", "Harga", "Stok")
+        widths = (70, 150, 80, 100, 70)
+        tv = self._treeview(tbl_card, cols, widths)
+
+        def on_tabel_click(event):
+            sel = tv.selection()
+            if not sel: return
+            o = self.db.cari_obat(tv.item(sel[0], 'values')[0])
+            if o:
+                v_id_edit.set(o.id_obat)
+                v_nama.set(o.nama)
+                v_satuan.set(o.satuan)
+                v_harga.set(str(o.harga))
+                v_stok.set(str(o.stok))
+
+        tv.bind('<ButtonRelease-1>', on_tabel_click)
+
+        for i, o in enumerate(self.db.get_obat()):
+            tag = "odd" if i % 2 else "even"
+            tv.insert("", "end", values=(o.id_obat, o.nama, o.satuan, f"Rp {o.harga:,}", o.stok), tags=(tag,))
+
     def show_resep(self):
-        self._clear(); self._set_title("Resep & Obat")
+        self._clear(); self._set_title("Manajemen Resep")
         c = self.content
 
         top = tk.Frame(c, bg=self.BG)
         top.pack(fill=tk.BOTH, expand=True)
 
         # Form resep
-        form_card = self._card(top, "Buat Resep — class Resep")
+        form_card = self._card(top, "Buat Resep")
         form_card.pack(side=tk.LEFT, fill=tk.Y, padx=(0,8))
         tk.Frame(form_card, bg=self.WHITE, height=6).pack()
 

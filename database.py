@@ -120,6 +120,24 @@ class DatabaseKlinik:
     
     def cari_obat(self, id_o: str) -> Obat:
         return next((o for o in self._obat if o.id_obat == id_o), None)
+    def update_obat(self, id_o: str, nama: str, satuan: str, harga: int, stok: int) -> bool:
+        o = self.cari_obat(id_o)
+        if o:
+            o.nama = nama
+            o.satuan = satuan
+            o.harga = harga
+            o.stok = stok
+            self.save_data()
+            return True
+        return False
+
+    def hapus_obat(self, id_o: str) -> bool:
+        o = self.cari_obat(id_o)
+        if o:
+            self._obat.remove(o)
+            self.save_data()
+            return True
+        return False
 
     # --- Antrian ---
     def tambah_antrian(self, a: Antrian): 
