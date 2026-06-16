@@ -52,10 +52,7 @@ class Dokter(Pegawai):
     def peran(self) -> str:
         return "Dokter"
 
-
-# =====================================================
 # POLIMORFISME: DokterUmum & DokterSpesialis
-# =====================================================
 class DokterUmum(Dokter):
     TARIF_DASAR = 75_000
 
@@ -86,10 +83,7 @@ class DokterSpesialis(Dokter):
     def peran(self) -> str:
         return f"Spesialis {self.spesialisasi}"
 
-
-# =====================================================
 # ABC LAINNYA: Perawat & Admin
-# =====================================================
 class Perawat(Pegawai):
     def hitung_biaya(self) -> int:
         return 0
@@ -108,9 +102,7 @@ class Admin(Pegawai):
         return "Admin"
 
 
-# =====================================================
 # CLASS: Pasien
-# =====================================================
 class Pasien:
     def __init__(self, id_pasien: str, nama: str, tgl_lahir: str,
                  alamat: Alamat, no_telp: str):
@@ -132,10 +124,7 @@ class Pasien:
     def __str__(self):
         return f"{self.nama} ({self.id_pasien})"
 
-
-# =====================================================
 # CLASS: Obat
-# =====================================================
 class Obat:
     def __init__(self, id_obat: str, nama: str, satuan: str, harga: int, stok: int):
         self.id_obat = id_obat
@@ -148,9 +137,7 @@ class Obat:
         return f"{self.nama} ({self.satuan}) — Rp {self.harga:,}"
 
 
-# =====================================================
 # CLASS: Resep
-# =====================================================
 class Resep:
     def __init__(self, id_resep: str, pasien: Pasien, dokter: Dokter, tanggal: str):
         self.id_resep = id_resep
@@ -175,9 +162,7 @@ class Resep:
                 f"{self.dokter.nama} | Total: Rp {self.total_biaya:,}")
 
 
-# =====================================================
 # CLASS: Antrian
-# =====================================================
 class Antrian:
     def __init__(self, nomor: int, pasien: Pasien, dokter: Dokter,
                  waktu: str, status: str = "menunggu"):
@@ -188,9 +173,7 @@ class Antrian:
         self.status = status
 
 
-# =====================================================
 # FACTORY PATTERN: DokterFactory
-# =====================================================
 class DokterFactory:
     @staticmethod
     def buat(tipe: str, id_pegawai: str, nama: str, alamat: Alamat,

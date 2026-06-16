@@ -38,7 +38,7 @@ class KlinikApp(tk.Tk):
         self._build_ui()
         self.show_dashboard()
 
-    # --------------------------------------------------
+    
     def _setup_style(self):
         s = ttk.Style(self)
         s.theme_use("clam")
@@ -53,7 +53,7 @@ class KlinikApp(tk.Tk):
         s.configure("TNotebook", background=self.BG)
         s.configure("TNotebook.Tab", font=("Segoe UI", 10), padding=[10, 4])
 
-    # --------------------------------------------------
+    
     def _build_ui(self):
         # --- Sidebar ---
         self.sidebar = tk.Frame(self, bg=self.SIDEBAR, width=200)
@@ -113,7 +113,7 @@ class KlinikApp(tk.Tk):
         self.content = tk.Frame(self.main, bg=self.BG)
         self.content.pack(fill=tk.BOTH, expand=True, padx=16, pady=14)
 
-    # --------------------------------------------------
+    
     def _clear(self):
         for w in self.content.winfo_children():
             w.destroy()
@@ -182,9 +182,6 @@ class KlinikApp(tk.Tk):
                         activebackground=self.SIDEBAR, activeforeground=self.WHITE)
         return btn
 
-    # --------------------------------------------------
-    # PAGES
-    # --------------------------------------------------
     def show_dashboard(self):
         self._clear(); self._set_title("Dashboard")
         c = self.content
@@ -230,7 +227,6 @@ class KlinikApp(tk.Tk):
             tv2.insert("", "end", values=(d.nama, d.__class__.__name__,
                                            f"Rp {d.hitung_biaya():,}"), tags=(tag,))
 
-    # --------------------------------------------------
     def show_pasien(self):
         self._clear(); self._set_title("Data Pasien")
         c = self.content
@@ -366,7 +362,6 @@ class KlinikApp(tk.Tk):
                       values=(p.id_pasien, p.nama, f"{p.umur} th", p.no_telp, p.alamat.kota),
                       tags=(tag,))
 
-    # --------------------------------------------------
     def show_dokter(self):
         self._clear(); self._set_title("Data Dokter")
         c = self.content
@@ -518,7 +513,7 @@ class KlinikApp(tk.Tk):
                               f"Rp {d.hitung_biaya():,}"),
                       tags=(tag,))
 
-    # --------------------------------------------------
+    
     def show_antrian(self):
         self._clear(); self._set_title("Antrian Pasien")
         c = self.content
