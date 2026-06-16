@@ -78,3 +78,21 @@ class DatabaseKlinik:
     #Resep
     def tambah_resep(self, r: Resep): self._resep.append(r)
     def get_resep(self) -> list: return self._resep
+
+    def cari_resep(self, id_r: str):
+        return next((r for r in self._resep if r.id_resep == id_r), None)
+
+    def update_resep(self, id_r: str, pasien_baru, dokter_baru) -> bool:
+        resep = self.cari_resep(id_r)
+        if resep:
+            resep.pasien = pasien_baru
+            resep.dokter = dokter_baru
+            return True
+        return False
+
+    def hapus_resep(self, id_r: str) -> bool:
+        resep = self.cari_resep(id_r)
+        if resep:
+            self._resep.remove(resep)
+            return True
+        return False

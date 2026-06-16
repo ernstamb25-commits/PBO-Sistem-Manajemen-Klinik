@@ -218,7 +218,7 @@ class KlinikApp(tk.Tk):
                                          a.dokter.nama, a.waktu, a.status), tags=(tag,))
 
         # Polimorfisme
-        poly_card = self._card(bot, "Polimorfisme — hitung_biaya()")
+        poly_card = self._card(bot, "Biaya Konsultasi")
         poly_card.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         cols2 = ("Dokter", "Tipe Class", "Tarif Konsul")
         widths2 = (170, 130, 110)
@@ -531,6 +531,7 @@ class KlinikApp(tk.Tk):
         v_o  = tk.StringVar()
         v_jm = tk.StringVar(value="10")
         v_at = tk.StringVar(value="3x1 sesudah makan")
+        v_id_resep_edit = tk.StringVar()
 
         self._combo_row(form_card, "Pasien", v_p, pasien_list, 26)
         self._combo_row(form_card, "Dokter", v_d, dokter_list, 26)
@@ -562,8 +563,33 @@ class KlinikApp(tk.Tk):
                                 f"Grand total  : Rp {r.total_biaya:,}")
             self.show_resep()
 
+        def do_update_resep():
+            id_r = v_id_resep_edit.get()
+            if not id_r:
+                messagebox.showwarning("Pilih Data", "Pilih resep dari tabel terlebih dahulu!")
+                return
+            pid = v_p.get().split(" — ")[0]
+            did = v_d.get().split(" — ")[0]
+            if self.db.update_resep(id_r, self.db.cari_pasien(pid), self.db.cari_dokter(did)):
+                messagebox.showinfo("Berhasil", "Resep berhasil diperbarui!")
+                self.show_resep()
+
+        def do_hapus_resep():
+            id_r = v_id_resep_edit.get()
+            if not id_r:
+                messagebox.showwarning("Pilih Data", "Pilih resep dari tabel terlebih dahulu!")
+                return
+            if messagebox.askyesno("Hapus", f"Yakin hapus resep {id_r}?"):
+                self.db.hapus_resep(id_r)
+                messagebox.showinfo("Berhasil", "Resep dihapus!")
+                self.show_resep()
+
         tk.Frame(form_card, bg=self.WHITE, height=4).pack()
-        self._btn(form_card, "  💊 Buat Resep", do_resep).pack(padx=12, pady=8, anchor="w")
+        btn_frame = tk.Frame(form_card, bg=self.WHITE)
+        btn_frame.pack(padx=12, pady=8, anchor="w")
+        self._btn(btn_frame, "💊 Buat Resep", do_resep).pack(side=tk.LEFT)
+        self._btn(btn_frame, "Update", do_update_resep, color=self.WARNING).pack(side=tk.LEFT, padx=(5, 0))
+        self._btn(btn_frame, "Hapus", do_hapus_resep, color=self.DANGER).pack(side=tk.LEFT, padx=(5, 0))
 
         # Tabel resep
         tbl_card = self._card(top, "Riwayat Resep")
@@ -571,6 +597,14 @@ class KlinikApp(tk.Tk):
         cols = ("ID Resep", "Pasien", "Dokter", "Tarif Dokter", "Total Obat", "Grand Total", "Tgl")
         widths = (70, 120, 160, 100, 100, 110, 90)
         tv = self._treeview(tbl_card, cols, widths)
+
+        def on_tabel_resep_click(event):
+            selected = tv.selection()
+            if selected:
+                v_id_resep_edit.set(tv.item(selected[0], 'values')[0])
+
+        tv.bind('<ButtonRelease-1>', on_tabel_resep_click)
+
         for i, r in enumerate(self.db.get_resep()):
             tag = "odd" if i % 2 else "even"
             tv.insert("", "end",
