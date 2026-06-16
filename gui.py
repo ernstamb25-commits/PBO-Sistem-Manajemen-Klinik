@@ -529,6 +529,7 @@ class KlinikApp(tk.Tk):
                 messagebox.showwarning("Pilih", "Pilih antrian terlebih dahulu!"); return
             idx = int(sel[0])
             self.db.get_antrian()[idx].status = v_st.get()
+            self.db.save_data()  # <-- Menyimpan perubahan status antrian
             self.show_antrian()
 
         # === TAMBAHKAN FUNGSI HAPUS DI SINI ===

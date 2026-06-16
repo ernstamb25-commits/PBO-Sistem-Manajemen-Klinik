@@ -68,9 +68,16 @@ def main():
     db2 = DatabaseKlinik()      # Singleton — mengembalikan instance yang sama
     assert db is db2, "Singleton gagal!"
 
-    init_data(db)
+    # Coba muat data yang tersimpan. Jika tidak ada, pakai data awal (init_data) lalu simpan.
+    if not db.load_data():
+        init_data(db)
+        db.save_data()
+
     app = KlinikApp(db)
     app.mainloop()
+    
+    # Pastikan data tersimpan saat aplikasi ditutup
+    db.save_data()
 
 
 if __name__ == "__main__":
