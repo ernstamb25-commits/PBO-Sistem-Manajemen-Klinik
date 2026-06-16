@@ -74,7 +74,6 @@ class KlinikApp(tk.Tk):
             ("🩺  Dokter",      self.show_dokter),
             ("📋  Antrian",     self.show_antrian),
             ("💊  Resep & Obat",self.show_resep),
-            ("🏗️  OOP Info",   self.show_oop_info),
         ]
         self._nav_btns = []
         for label, cmd in nav_items:
@@ -663,80 +662,3 @@ class KlinikApp(tk.Tk):
                               f"Rp {r.total_obat:,}",
                               f"Rp {r.total_biaya:,}", r.tanggal),
                       tags=(tag,))
-
-    # --------------------------------------------------
-    def show_oop_info(self):
-        self._clear(); self._set_title("Arsitektur OOP")
-        c = self.content
-
-        txt = tk.Text(c, font=("Courier New", 10), bg=self.WHITE,
-                      fg=self.TEXT_D, wrap=tk.WORD, relief="solid", bd=1,
-                      padx=16, pady=12)
-        sb = tk.Scrollbar(c, command=txt.yview)
-        txt.configure(yscrollcommand=sb.set)
-        sb.pack(side=tk.RIGHT, fill=tk.Y)
-        txt.pack(fill=tk.BOTH, expand=True)
-
-        info = f"""
-╔══════════════════════════════════════════════════════════════════╗
-║         ARSITEKTUR OOP — SISTEM MANAJEMEN KLINIK                 ║
-╚══════════════════════════════════════════════════════════════════╝
-
-━━━ 1. SINGLETON — DatabaseKlinik ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  Instance saat ini: {self.db.id}
-  Hanya 1 instance yang dapat dibuat di seluruh aplikasi.
-  db1 = DatabaseKlinik() ──► mengembalikan instance yang sama
-  db2 = DatabaseKlinik() ──► db1 is db2  → True ✓
-
-━━━ 2. ABSTRACT BASE CLASS (ABC) — Pegawai ━━━━━━━━━━━━━━━━━━━━
-  class Pegawai(ABC):
-    @abstractmethod hitung_biaya() → wajib diimplementasi
-    @property @abstractmethod peran → wajib didefinisi
-
-  Subclass ABC:
-    Pegawai ──► Dokter ──► DokterUmum
-                       └─► DokterSpesialis
-               Perawat
-               Admin
-
-━━━ 3. INHERITANCE ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  DokterUmum(Dokter)     ──► super().__init__() memanggil Pegawai
-  DokterSpesialis(Dokter) ──► tambahan: spesialisasi, kelipatan
-
-━━━ 4. POLIMORFISME — hitung_biaya() ━━━━━━━━━━━━━━━━━━━━━━━━━━
-  Semua dipanggil dengan nama method yang sama, hasil berbeda:
-
-{"  " + chr(10).join(f"  {d.nama:<30} {d.__class__.__name__:<20} Rp {d.hitung_biaya():>10,.0f}" for d in self.db.get_dokter())}
-
-━━━ 5. NAMEDTUPLE ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  Alamat       = namedtuple("Alamat", ["jalan","kota","kode_pos"])
-  JadwalPraktek= namedtuple("JadwalPraktek", ["hari","jam_mulai","jam_selesai"])
-  → Immutable, ringan, readable (seperti Python namedtuple asli)
-
-━━━ 6. FACTORY PATTERN — DokterFactory ━━━━━━━━━━━━━━━━━━━━━━━
-  class DokterFactory:
-    @staticmethod
-    def buat(tipe, id, nama, alamat, spes, jadwal, kelipatan):
-      if tipe == "umum"      → return DokterUmum(...)
-      if tipe == "spesialis" → return DokterSpesialis(...)
-      raise ValueError(...)
-
-  Client tidak perlu tahu class konkret yang digunakan.
-
-━━━ 7. CLASS & OBJECT ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  Pasien  : id, nama, tgl_lahir, alamat, no_telp, riwayat[]
-  Obat    : id, nama, satuan, harga, stok
-  Resep   : id, pasien, dokter, tanggal, items[]
-            → property: total_obat, total_biaya
-  Antrian : nomor, pasien, dokter, waktu, status
-
-━━━ 8. GUI (Tkinter) ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  - Dashboard  : metrik ringkas + antrian + polimorfisme
-  - Pasien     : form input + tabel daftar pasien
-  - Dokter     : form Factory + tabel + tarif per class
-  - Antrian    : form + tabel + update status real-time
-  - Resep & Obat: form buat resep + riwayat + total biaya
-  - OOP Info   : halaman ini (dokumentasi arsitektur)
-"""
-        txt.insert("1.0", info)
-        txt.config(state=tk.DISABLED)
