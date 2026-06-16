@@ -237,7 +237,7 @@ class KlinikApp(tk.Tk):
         top.pack(fill=tk.BOTH, expand=True)
 
         # Form tambah pasien
-        form_card = self._card(top, "Tambah Pasien Baru — class Pasien")
+        form_card = self._card(top, "Tambah Pasien Baru")
         form_card.pack(side=tk.LEFT, fill=tk.Y, padx=(0,8))
         tk.Frame(form_card, bg=self.WHITE, height=6).pack()
 
@@ -353,7 +353,7 @@ class KlinikApp(tk.Tk):
         top.pack(fill=tk.BOTH, expand=True)
 
         # Form tambah dokter
-        form_card = self._card(top, "Tambah Dokter — DokterFactory.buat()")
+        form_card = self._card(top, "Tambah Dokter")
         form_card.pack(side=tk.LEFT, fill=tk.Y, padx=(0,8))
         tk.Frame(form_card, bg=self.WHITE, height=6).pack()
 
@@ -468,7 +468,7 @@ class KlinikApp(tk.Tk):
         top.pack(fill=tk.BOTH, expand=True)
 
         # Form tambah antrian
-        form_card = self._card(top, "Tambah Antrian — class Antrian")
+        form_card = self._card(top, "Tambah Antrian")
         form_card.pack(side=tk.LEFT, fill=tk.Y, padx=(0,8))
         tk.Frame(form_card, bg=self.WHITE, height=6).pack()
 
@@ -566,7 +566,7 @@ class KlinikApp(tk.Tk):
         top = tk.Frame(c, bg=self.BG)
         top.pack(fill=tk.BOTH, expand=True)
 
-        form_card = self._card(top, "Kelola Data Obat — class Obat")
+        form_card = self._card(top, "Kelola Data Obat")
         form_card.pack(side=tk.LEFT, fill=tk.Y, padx=(0,8))
         tk.Frame(form_card, bg=self.WHITE, height=6).pack()
 
