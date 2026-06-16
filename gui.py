@@ -247,6 +247,7 @@ class KlinikApp(tk.Tk):
         v_jalan = tk.StringVar()
         v_kota  = tk.StringVar(value="Yogyakarta")
         v_kpos  = tk.StringVar(value="55000")
+        v_id_edit = tk.StringVar()
 
         self._entry_row(form_card, "Nama lengkap", v_nama)
         self._entry_row(form_card, "Tanggal lahir", v_tgl)
@@ -269,8 +270,46 @@ class KlinikApp(tk.Tk):
             messagebox.showinfo("Berhasil", f"Pasien {nama} didaftarkan!\nID: {id_p}")
             self.show_pasien()
 
+        # === FUNGSI UPDATE BARU ===
+        def do_update():
+            id_p = v_id_edit.get()
+            if not id_p:
+                messagebox.showwarning("Pilih Data", "Pilih pasien dari tabel terlebih dahulu!")
+                return
+            nama = v_nama.get().strip()
+            tgl  = v_tgl.get().strip()
+
+        # === FUNGSI HAPUS DATA ===
+        def do_hapus():
+            id_p = v_id_edit.get()
+            if not id_p:
+                messagebox.showwarning("Pilih Data", "Pilih pasien dari tabel terlebih dahulu yang ingin dihapus!")
+                return
+            
+            # Memunculkan popup konfirmasi (Yes/No)
+            konfirmasi = messagebox.askyesno("Konfirmasi Hapus", f"Apakah Anda yakin ingin menghapus data pasien {v_nama.get()}?")
+            
+            if konfirmasi:
+                if self.db.hapus_pasien(id_p):
+                    messagebox.showinfo("Berhasil", "Data pasien berhasil dihapus!")
+                    self.show_pasien() # Refresh halaman dan bersihkan form
+                else:
+                    messagebox.showerror("Error", "Gagal menghapus data. Pasien tidak ditemukan.")
+
+
+            self.db.update_pasien(id_p, nama, tgl, v_jalan.get() or "-", v_kota.get() or "Yogyakarta", v_kpos.get() or "55000", v_telp.get() or "-")
+            messagebox.showinfo("Berhasil", f"Data pasien {nama} berhasil diperbarui!")
+            self.show_pasien() # Refresh halaman
+
         tk.Frame(form_card, bg=self.WHITE, height=4).pack()
-        self._btn(form_card, "  + Daftarkan Pasien", do_tambah).pack(padx=12, pady=8, anchor="w")
+        
+        #SUSUNAN TOMBOL
+        btn_frame = tk.Frame(form_card, bg=self.WHITE)
+        btn_frame.pack(padx=12, pady=8, anchor="w")
+        
+        self._btn(btn_frame, "  + Daftarkan", do_tambah).pack(side=tk.LEFT)
+        self._btn(btn_frame, "Simpan Edit", do_update, color=self.WARNING).pack(side=tk.LEFT, padx=(5, 0))
+        self._btn(btn_frame, "Hapus", do_hapus, color=self.DANGER).pack(side=tk.LEFT, padx=(5, 0))
 
         # Tabel pasien
         tbl_card = self._card(top, "Daftar Pasien")
@@ -278,6 +317,28 @@ class KlinikApp(tk.Tk):
         cols = ("ID", "Nama", "Umur", "No. Telp", "Kota")
         widths = (60, 150, 50, 120, 110)
         tv = self._treeview(tbl_card, cols, widths)
+        
+        # === TAMBAHKAN KODE INI AGAR DATA NAIK KE FORM SAAT DIKLIK ===
+        def on_tabel_click(event):
+            selected = tv.selection()
+            if not selected: return
+            
+            # Ambil ID dari baris yang diklik
+            id_p = tv.item(selected[0], 'values')[0]
+            p = self.db.cari_pasien(id_p)
+            
+            if p:
+                # Masukkan data ke kotak input (Entry)
+                v_id_edit.set(p.id_pasien)
+                v_nama.set(p.nama)
+                v_tgl.set(p.tgl_lahir)
+                v_telp.set(p.no_telp)
+                v_jalan.set(p.alamat.jalan)
+                v_kota.set(p.alamat.kota)
+                v_kpos.set(p.alamat.kode_pos)
+
+        tv.bind('<ButtonRelease-1>', on_tabel_click)
+        
         for i, p in enumerate(self.db.get_pasien()):
             tag = "odd" if i % 2 else "even"
             tv.insert("", "end",
@@ -422,9 +483,44 @@ class KlinikApp(tk.Tk):
             self.db.get_antrian()[idx].status = v_st.get()
             self.show_antrian()
 
+        # === TAMBAHKAN FUNGSI HAPUS DI SINI ===
+        def do_hapus_antrian():
+            sel = tv.selection()
+            if not sel:
+                messagebox.showwarning("Pilih", "Pilih antrian dari tabel terlebih dahulu yang ingin dihapus!")
+                return
+            
+            nomor_antrian = int(tv.item(sel[0], 'values')[0])
+            nama_pasien = tv.item(sel[0], 'values')[1]
+            
+            konfirmasi = messagebox.askyesno("Konfirmasi", f"Yakin ingin menghapus Antrian No. {nomor_antrian} atas nama {nama_pasien}?")
+            if konfirmasi:
+                if self.db.hapus_antrian(nomor_antrian):
+                    messagebox.showinfo("Berhasil", "Data antrian berhasil dihapus!")
+                    self.show_antrian()
+                else:
+                    messagebox.showerror("Error", "Gagal menghapus antrian.")
+            
+            # Ambil 'nomor' antrian dari kolom pertama (index 0) pada baris yang dipilih
+            nomor_antrian = int(tv.item(sel[0], 'values')[0])
+            nama_pasien = tv.item(sel[0], 'values')[1]
+            
+            konfirmasi = messagebox.askyesno("Konfirmasi", f"Yakin ingin menghapus Antrian No. {nomor_antrian} atas nama {nama_pasien}?")
+            if konfirmasi:
+                if self.db.hapus_antrian(nomor_antrian):
+                    messagebox.showinfo("Berhasil", "Data antrian berhasil dihapus!")
+                    self.show_antrian() # Refresh tampilan tabel
+                else:
+                    messagebox.showerror("Error", "Gagal menghapus antrian.")
+        
+
+        # === TAMBAHKAN TOMBOL HAPUS (Warna Merah) DI SEBELAH TOMBOL UPDATE ===
+        self._btn(ctrl, "Update", ubah_status, color=self.SUCCESS).pack(side=tk.LEFT, padx=4)
+        self._btn(ctrl, "Hapus", do_hapus_antrian, color=self.DANGER).pack(side=tk.LEFT, padx=(10, 4))
+
         self._btn(ctrl, "Update", ubah_status, color=self.SUCCESS).pack(side=tk.LEFT, padx=4)
 
-    # --------------------------------------------------
+    
     def show_resep(self):
         self._clear(); self._set_title("Resep & Obat")
         c = self.content

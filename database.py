@@ -28,6 +28,25 @@ class DatabaseKlinik:
     def cari_pasien(self, id_p: str) -> Pasien:
         return next((p for p in self._pasien if p.id_pasien == id_p), None)
 
+    # === KODE YANG DITAMBAHKAN ===
+    def update_pasien(self, id_p: str, nama: str, tgl_lahir: str, jalan: str, kota: str, kpos: str, no_telp: str):
+        pasien = self.cari_pasien(id_p)
+        if pasien:
+            from models import Alamat # Pastikan Alamat bisa diakses
+            pasien.nama = nama
+            pasien.tgl_lahir = tgl_lahir
+            pasien.alamat = Alamat(jalan, kota, kpos)
+            pasien.no_telp = no_telp
+            return True
+        return False
+
+    def hapus_pasien(self, id_p: str) -> bool:
+        pasien = self.cari_pasien(id_p)
+        if pasien:
+            self._pasien.remove(pasien) # Menghapus objek dari list
+            return True
+        return False
+
     # --- Dokter ---
     def tambah_dokter(self, d: Dokter): self._dokter.append(d)
     def get_dokter(self) -> list: return self._dokter
@@ -40,7 +59,7 @@ class DatabaseKlinik:
     def cari_obat(self, id_o: str) -> Obat:
         return next((o for o in self._obat if o.id_obat == id_o), None)
 
-    # --- Antrian ---
+    #Antrian
     def tambah_antrian(self, a: Antrian): self._antrian.append(a)
     def get_antrian(self) -> list: return self._antrian
     def next_nomor(self) -> int:
@@ -48,6 +67,14 @@ class DatabaseKlinik:
         self._nomor_antrian += 1
         return n
 
-    # --- Resep ---
+    #FUNGSI HAPUS ANTRIAN
+    def hapus_antrian(self, nomor: int) -> bool:
+        antrian = next((a for a in self._antrian if a.nomor == nomor), None)
+        if antrian:
+            self._antrian.remove(antrian)
+            return True
+        return False
+
+    #Resep
     def tambah_resep(self, r: Resep): self._resep.append(r)
     def get_resep(self) -> list: return self._resep
