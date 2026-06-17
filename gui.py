@@ -221,7 +221,7 @@ class KlinikApp(tk.Tk):
         bot.pack(fill=tk.BOTH, expand=True)
 
         # Antrian
-        aq_card = self._card(bot, "Antrian Aktif")
+        aq_card = self._card(bot, "Antrian Hari Ini")
         aq_card.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0,8))
         cols = ("No", "Pasien", "Dokter", "Waktu", "Status")
         widths = (40, 130, 160, 60, 110)
