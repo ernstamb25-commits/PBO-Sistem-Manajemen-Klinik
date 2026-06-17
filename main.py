@@ -1,3 +1,4 @@
+import ctypes
 from database import DatabaseKlinik
 from gui import KlinikApp
 
@@ -6,6 +7,12 @@ from gui import KlinikApp
 # from database import init_data 
 
 def main():
+    # Mengatasi blur/buram agar tampilan GUI menjadi HD
+    try:
+        ctypes.windll.shcore.SetProcessDpiAwareness(1)
+    except Exception:
+        pass
+
     db = DatabaseKlinik()       
     db2 = DatabaseKlinik()      
     assert db is db2, "Singleton gagal!"
