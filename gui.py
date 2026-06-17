@@ -3,6 +3,10 @@ from tkinter import ttk, messagebox
 from datetime import date
 import datetime
 from tkcalendar import DateEntry
+import os
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 from models import Pasien, Antrian, Resep, Alamat, JadwalPraktek, DokterFactory
 from database import DatabaseKlinik
 
@@ -28,7 +32,7 @@ class KlinikApp(tk.Tk):
     def __init__(self, db: DatabaseKlinik):
         super().__init__()
         self.db = db
-        self.title("Sistem Manajemen Klinik")
+        self.title("Sistem Manajemen KLINIK GAMAVO")
         self.geometry("1100x680")
         self.configure(bg=self.BG)
         self.resizable(True, True)
@@ -61,10 +65,20 @@ class KlinikApp(tk.Tk):
         self.sidebar.pack_propagate(False)
 
         # Logo
-        tk.Label(self.sidebar, text="🏥 KlinikApp",
-                 bg=self.SIDEBAR, fg=self.TEXT_L,
-                 font=("Segoe UI", 14, "bold"), pady=20).pack(fill=tk.X)
-        tk.Label(self.sidebar, text="Sistem Manajemen Klinik",
+        try:
+            logo_path = os.path.join(BASE_DIR, "Lambang UGM.png")
+            # subsample(12, 12) digunakan untuk mengecilkan ukuran logo agar pas di sidebar
+            self.sidebar_logo = tk.PhotoImage(file=logo_path).subsample(20, 20)
+            tk.Label(self.sidebar, text=" KLINIK \n GAMAVO", image=self.sidebar_logo, compound=tk.LEFT,
+                     bg=self.SIDEBAR, fg=self.TEXT_L,
+                     font=("Segoe UI", 14, "bold"), pady=20).pack(fill=tk.X)
+        except Exception as e:
+            print("Logo sidebar gagal dimuat:", e)
+            tk.Label(self.sidebar, text="🏥 Klinik",
+                     bg=self.SIDEBAR, fg=self.TEXT_L,
+                     font=("Segoe UI", 14, "bold"), pady=20).pack(fill=tk.X)
+            
+        tk.Label(self.sidebar, text="Teknologi Rekayasa Internet \n Sekolah Vokasi \n Universitas Gadjah Mada",
                  bg=self.SIDEBAR, fg=self.TEXT_M,
                  font=("Segoe UI", 8)).pack()
         tk.Frame(self.sidebar, bg="#34495E", height=1).pack(fill=tk.X, pady=10)
@@ -77,6 +91,7 @@ class KlinikApp(tk.Tk):
             ("📋  Antrian",     self.show_antrian),
             ("💊  Obat",        self.show_obat),
             ("🧾  Resep",       self.show_resep),
+            ("ℹ️  Informasi",    self.show_informasi),
         ]
         self._nav_btns = []
         for label, cmd in nav_items:
@@ -90,7 +105,7 @@ class KlinikApp(tk.Tk):
 
         # DB info di bawah sidebar
         tk.Frame(self.sidebar, bg="#34495E", height=1).pack(fill=tk.X, side=tk.BOTTOM, pady=0)
-        tk.Label(self.sidebar, text=f"Singleton DB\nID: {self.db.id[:12]}",
+        tk.Label(self.sidebar, text=f"Praktikum. PBO\nID: {self.db.id[:12]}",
                  bg=self.SIDEBAR, fg=self.TEXT_M,
                  font=("Courier", 8), pady=8).pack(side=tk.BOTTOM, fill=tk.X)
 
@@ -909,3 +924,40 @@ class KlinikApp(tk.Tk):
                               f"Rp {r.total_obat:,}",
                               f"Rp {r.total_biaya:,}", r.tanggal),
                       tags=(tag,))
+
+    # --- PASTIKAN 'def' DI BAWAH INI SEJAJAR DENGAN 'def show_resep' ---
+    # --- (Hanya ada 4 spasi sebelum kata 'def') ---
+    
+    def show_informasi(self):
+        self._clear(); self._set_title("Informasi Pembuat")
+        c = self.content
+
+        if not hasattr(self, 'ugm_img'):
+            try:
+                logo_path = os.path.join(BASE_DIR, "Lambang UGM.png")
+                self.ugm_img = tk.PhotoImage(file=logo_path).subsample(8, 8) 
+            except Exception as e:
+                print("Gambar logo UGM tidak ditemukan:", e)
+
+        if hasattr(self, 'ugm_img'):
+            lbl_logo = tk.Label(c, image=self.ugm_img, bg=self.BG)
+            lbl_logo.image = self.ugm_img
+            lbl_logo.pack(pady=(30, 10))
+
+        teks_info = (
+            "Disusun oleh:\n"
+            "Ernst Seth Tambayong        (566353)\n"
+            "Rafi Tri Ardhiyanto         (566259)\n"
+            "Arasya Wachid Fawas Fadila  (557962)\n"
+            "Kelas RI2BB\n\n"
+            "PROGRAM STUDI SARJANA TERAPAN\n"
+            "TEKNOLOGI REKAYASA INTERNET\n"
+            "DEPARTEMEN TEKNIK ELEKTRO DAN INFORMATIKA\n"
+            "SEKOLAH VOKASI\n"
+            "UNIVERSITAS GADJAH MADA\n"
+            "2025"
+        )
+
+        lbl_teks = tk.Label(c, text=teks_info, bg=self.BG, fg=self.TEXT_D,
+                            font=("Segoe UI", 12, "bold"), justify="center")
+        lbl_teks.pack(pady=(0, 20))
