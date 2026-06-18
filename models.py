@@ -2,16 +2,12 @@ from abc import ABC, abstractmethod
 from collections import namedtuple
 from datetime import date
 
-# =====================================================
 # NAMEDTUPLE
-# =====================================================
 Alamat = namedtuple("Alamat", ["jalan", "kota", "kode_pos"])
 JadwalPraktek = namedtuple("JadwalPraktek", ["hari", "jam_mulai", "jam_selesai"])
 
 
-# =====================================================
 # ABSTRACT BASE CLASS: Pegawai
-# =====================================================
 class Pegawai(ABC):
     def __init__(self, id_pegawai: str, nama: str, alamat: Alamat):
         self.id_pegawai = id_pegawai
@@ -33,9 +29,7 @@ class Pegawai(ABC):
         return f"{self.peran}: {self.nama} ({self.id_pegawai})"
 
 
-# =====================================================
 # INHERITANCE: Dokter extends Pegawai
-# =====================================================
 class Dokter(Pegawai):
     TARIF_DASAR = 100_000
 
