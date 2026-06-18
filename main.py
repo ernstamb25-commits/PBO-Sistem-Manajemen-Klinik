@@ -2,12 +2,10 @@ import ctypes
 from database import DatabaseKlinik
 from gui import KlinikApp
 
-# Jika Anda tidak ingin menggunakan init_data sama sekali, 
-# Anda bisa menghapus import init_data di bawah ini
 # from database import init_data 
 
 def main():
-    # Mengatasi blur/buram agar tampilan GUI menjadi HD
+    # Tampilan GUI mengikuti skala DPI monitor
     try:
         ctypes.windll.shcore.SetProcessDpiAwareness(1)
     except Exception:
@@ -17,7 +15,7 @@ def main():
     db2 = DatabaseKlinik()      
     assert db is db2, "Singleton gagal!"
 
-    # Coba muat data dari file .pkl
+    # Muat data dari file .pkl
     if not db.load_data():
         print("Data tidak ditemukan, memuat data awal...")
         # Jika Anda masih ingin ada data default saat pertama kali install:
