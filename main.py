@@ -15,7 +15,7 @@ def main():
     db2 = DatabaseKlinik()      
     assert db is db2, "Singleton gagal!"
 
-    # Muat data dari file .pkl
+    # Muat dari file .pkl
     if not db.load_data():
         print("Data tidak ditemukan, memuat data awal...")
     else:
