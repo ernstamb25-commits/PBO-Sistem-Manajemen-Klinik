@@ -18,9 +18,6 @@ def main():
     # Muat data dari file .pkl
     if not db.load_data():
         print("Data tidak ditemukan, memuat data awal...")
-        # Jika Anda masih ingin ada data default saat pertama kali install:
-        # init_data(db) 
-        # db.save_data()
     else:
         print("Data berhasil dimuat dari data_klinik.pkl")
 
